@@ -1,0 +1,17 @@
+enamldef Main(MainWindow):
+    Container:
+        constraints = [
+            vbox(
+                hbox(url_label, url_field),
+                web_view,
+            ),
+        ]
+        Label:
+            id: url_label
+            text = 'URL'
+        Field:
+            id: url_field
+            value = 'http://google.com/'
+        WebView:
+            id: web_view
+            url := url_field.value
