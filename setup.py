@@ -15,5 +15,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     entry_points="""
+        [gui_scripts]
+        kilometer-browser = kmb.scripts.browser:main
     """,
 )

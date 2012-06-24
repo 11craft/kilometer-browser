@@ -1,0 +1,30 @@
+enamldef BrowserMainWindow(MainWindow):
+    id: main
+    attr default_url: basestring = 'http://google.com/'
+    WebBrowser:
+        initialized ::
+            # Set the default URL during initialization
+            # so events cascade through to WebView.
+            self.url = main.default_url
+
+
+enamldef WebBrowser(Container):
+    id: web_browser
+    constraints = [
+        vbox(
+            hbox(url_label, url_field),
+            web_view,
+        ),
+        web_view.width >= 640,
+        web_view.height >= 480,
+    ]
+    attr url: basestring = ''
+    Label:
+        id: url_label
+        text = 'URL'
+    Field:
+        id: url_field
+        value := web_browser.url
+    WebView:
+        id: web_view
+        url := url_field.value
