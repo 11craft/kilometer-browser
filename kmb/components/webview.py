@@ -89,5 +89,4 @@ if __name__ == '__main__':
     with enaml.imports():
         from webview_test import Main
     main_window = Main()
-
     main_window.show()
