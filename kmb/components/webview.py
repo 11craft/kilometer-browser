@@ -1,8 +1,9 @@
 from abc import abstractmethod
 
 from enaml.components.control import Control, AbstractTkControl
-from enaml.backends.qt.qt import QtWebKit
+from enaml.backends.qt.qt import QtGui, QtWebKit
 from enaml.backends.qt.qt_control import QtControl
+from enaml.layout.geometry import Size
 
 from traits.api import Instance, Str
 
@@ -49,6 +50,7 @@ class QtWebView(QtControl, AbstractTkWebView):
         Initialize the attributes of the control.
         """
         super(QtWebView, self).initialize()
+        widget = self.widget
 
     def bind(self):
         """
@@ -73,6 +75,13 @@ class QtWebView(QtControl, AbstractTkWebView):
         print 'URL is now', url
         self.shell_obj.url = url
 
+    # Overrides
+    # ---------
+
+    def size_hint(self):
+        # Override this, otherwise the size will get stuck at 800x600
+        return (None, None)
+
 
 if __name__ == '__main__':
     import kmb.components
@@ -80,4 +89,5 @@ if __name__ == '__main__':
     with enaml.imports():
         from webview_test import Main
     main_window = Main()
+
     main_window.show()

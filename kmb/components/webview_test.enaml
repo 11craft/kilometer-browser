@@ -1,17 +1,24 @@
 enamldef Main(MainWindow):
+    id: main
     Container:
+        id: container
         constraints = [
             vbox(
                 hbox(url_label, url_field),
                 web_view,
             ),
+            web_view.width >= 640,
+            web_view.height >= 480,
         ]
         Label:
             id: url_label
             text = 'URL'
         Field:
             id: url_field
-            value = 'http://google.com/'
+            initialized ::
+                # Set the value here, instead of assigning a default.
+                # This causes the change event to cascade to the WebView
+                self.value = 'http://google.com/'
         WebView:
             id: web_view
             url := url_field.value
