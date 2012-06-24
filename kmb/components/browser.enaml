@@ -27,4 +27,4 @@ enamldef WebBrowser(Container):
         value := web_browser.url
     WebView:
         id: web_view
-        url := url_field.value
+        url := web_browser.url
