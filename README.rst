@@ -68,3 +68,4 @@ For example, say you've created the virtualenv
 inside a "/home/myuser/projects" directory::
 
     $ /home/myuser/projects/kilometer-browser/bin/kilometer-browser
+
