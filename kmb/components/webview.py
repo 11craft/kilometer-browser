@@ -30,6 +30,12 @@ class WebView(Control):
 
     abstract_obj = Instance(AbstractTkWebView)
 
+    # Allow free expansion and contraction.
+    hug_width = 'ignore'
+    hug_height = 'ignore'
+    resist_clip_width = 'ignore'
+    resist_clip_height = 'ignore'
+
 
 class QtWebView(QtControl, AbstractTkWebView):
     """
@@ -74,13 +80,6 @@ class QtWebView(QtControl, AbstractTkWebView):
         url = url.toString()
         print 'URL is now', url
         self.shell_obj.url = url
-
-    # Overrides
-    # ---------
-
-    def size_hint(self):
-        # Override this, otherwise the size will get stuck at 800x600
-        return (None, None)
 
 
 if __name__ == '__main__':
