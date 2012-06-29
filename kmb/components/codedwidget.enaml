@@ -65,7 +65,6 @@ enamldef CodedWidget(Container):
     attr runtime_exception = None
 
     Include:
-        id: include
         components << [main_component] if main_component is not None else []
 
 
