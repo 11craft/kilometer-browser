@@ -1,0 +1,121 @@
+"""CodedWidget component.
+
+When you assign valid UTF-8 encoded enaml source code
+to the `source_code` attribute of a `CodedWidget`,
+it will compile the source code into a module,
+then contain an instance of the `Main` component in that module
+as a child.
+"""
+
+import types
+
+from enaml import imports
+from enaml.core.parser import parse
+from enaml.core.enaml_compiler import EnamlCompiler
+
+
+enamldef CodedWidget(Container):
+
+    # just contain the widget, don't pad it
+    padding = (0, 0, 0, 0)
+
+    # enaml source code to compile (UTF-8 encoded)
+    attr source_code: str = ''
+    # compile the source code on change, and store the resulting module
+    source_code ::
+        try:
+            enaml_file = '<string>'
+            ast = parse(source_code, filename=enaml_file)
+            code = EnamlCompiler.compile(ast, enaml_file)
+            module = types.ModuleType('__main__')
+            module.__file__ = enaml_file
+            ns = module.__dict__
+            with imports():
+                exec code in ns
+            self.module = module
+        except Exception, e:
+            # Something happened, so don't trust the module; empty instead.
+            self.module = None
+            self.compile_exception = e
+            raise
+        else:
+            self.compile_exception = None
+
+    # module that results from compiling source_code
+    attr module = None
+    module ::
+        if hasattr(module, 'Main'):
+            try:
+                main = module.Main()
+            except Exception, e:
+                self.runtime_exception = e
+                raise
+            else:
+                self.runtime_exception = None
+                self.main_component = main
+        else:
+            self.main_component = None
+
+    # instance of the Main component from the module
+    attr main_component = None
+
+    # exception that occurred during compilation
+    attr compile_exception = None
+    # exception that occurred when calling Main()
+    attr runtime_exception = None
+
+    Include:
+        id: include
+        components << [main_component] if main_component is not None else []
+
+
+EXAMPLE_SOURCE_CODE = """\
+enamldef Main(Container):
+    Label:
+        text = 'Hello'
+    Field:
+        id: field
+        value = 'World'
+    Label:
+        id: label
+        text << 'Hello, {0}'.format(field.value)
+"""
+
+
+enamldef Main(MainWindow):
+    id: main
+
+    attr source_code: str = ''
+
+    attr text
+    text << repr(exception)
+    text ::
+        exception_view.set_text(text)
+
+    attr exception = None
+    exception << coded_widget.compile_exception or coded_widget.runtime_exception or None
+
+    initialized ::
+        editor.set_text(EXAMPLE_SOURCE_CODE)
+
+    Container:
+        id: container
+        Label:
+            text = 'Source code:'
+        TextEditor:
+            id: editor
+            constraints = [
+                editor.width >= 400,
+            ]
+            text_changed ::
+                main.source_code = self.get_text().encode('utf8')
+        Label:
+            text = 'Coded widget:'
+        CodedWidget:
+            id: coded_widget
+            source_code << main.source_code
+        Label:
+            text = 'Exception:'
+        TextEditor:
+            id: exception_view
+            read_only = True
