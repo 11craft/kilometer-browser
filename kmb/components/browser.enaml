@@ -59,7 +59,9 @@ enamldef ActionDrawer(Container):
 
     ActionCard:
         initialized :: drawer.cards.append(self)
-        source_code :: refresh_top_action_card()
+        # Defer refreshing the top action card,
+        # to allow the CodedWidget to finish initializing.
+        source_code :: request_refresh_task(refresh_top_action_card)
 
 
 enamldef ActionCard(Container):
