@@ -1,6 +1,7 @@
 from abc import abstractmethod
 
 from enaml.components.control import Control, AbstractTkControl
+from enaml.core.trait_types import EnamlEvent
 from enaml.backends.qt.qt import QtGui, QtWebKit
 from enaml.backends.qt.qt_control import QtControl
 from enaml.layout.geometry import Size
@@ -30,6 +31,8 @@ class WebView(Control):
 
     abstract_obj = Instance(AbstractTkWebView)
 
+    load_finished = EnamlEvent
+
     # Allow free expansion and contraction.
     hug_width = 'ignore'
     hug_height = 'ignore'
@@ -51,13 +54,6 @@ class QtWebView(QtControl, AbstractTkWebView):
         """
         self.widget = QtWebKit.QWebView(parent)
 
-    def initialize(self):
-        """
-        Initialize the attributes of the control.
-        """
-        super(QtWebView, self).initialize()
-        widget = self.widget
-
     def bind(self):
         """
         Bind toolkit events to handlers on this object.
@@ -65,20 +61,22 @@ class QtWebView(QtControl, AbstractTkWebView):
         super(QtWebView, self).bind()
         widget = self.widget
         widget.urlChanged.connect(self.on_url_changed)
+        widget.loadFinished.connect(self.on_load_finished)
 
     # Shell object change handlers
     # ----------------------------
 
     def shell_url_changed(self, url):
-        print 'Loading', url
         self.widget.load(url)
 
     # Signal handlers
     # ---------------
 
+    def on_load_finished(self, ok):
+        self.shell_obj.load_finished()
+
     def on_url_changed(self, url):
         url = url.toString()
-        print 'URL is now', url
         self.shell_obj.url = url
 
 
