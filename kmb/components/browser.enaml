@@ -1,30 +1,125 @@
+from kmb.components.codedwidget import CodedWidget
+
+
+EXAMPLE_SOURCE_CODE = """\
+enamldef Main(Container):
+    attr input_url = u''
+    input_url :: url_editor.set_text(input_url)
+    padding = (0, 0, 0, 0)
+    Label:
+        text = 'URL:'
+    TextEditor:
+        id: url_editor
+        read_only = True
+"""
+
+
 enamldef BrowserMainWindow(MainWindow):
     id: main
+
     attr default_url: basestring = 'http://google.com/'
-    WebBrowser:
-        initialized ::
-            # Set the default URL during initialization
-            # so events cascade through to WebView.
-            self.url = main.default_url
+
+    event refresh_top_action_card ::
+        component = drawer.cards[0].widget.main_component
+        if hasattr(component, 'input_url'):
+            component.input_url = browser.url
+
+    initialized ::
+        drawer.cards[0].source_code = EXAMPLE_SOURCE_CODE
+
+    Container:
+
+        constraints = [
+            hbox(drawer, browser),
+            browser.width >= 640,
+            height >= 480,
+        ]
+
+        ActionDrawer:
+            id: drawer
+            refresh_top_action_card :: main.refresh_top_action_card()
+
+        WebBrowser:
+            id: browser
+            initialized ::
+                # Set the default URL during initialization
+                # so events cascade through to WebView.
+                self.url = main.default_url
+            load_finished :: refresh_top_action_card()
+
+
+enamldef ActionDrawer(Container):
+    id: drawer
+
+    attr cards = []
+
+    event refresh_top_action_card
+
+    padding = (0, 0, 0, 0)
+
+    ActionCard:
+        initialized :: drawer.cards.append(self)
+        source_code :: refresh_top_action_card()
+
+
+enamldef ActionCard(Container):
+
+    attr source_code := widget.source_code
+
+    attr widget = widget
+
+    padding = (0, 0, 0, 0)
+
+    PushButton:
+        id: edit_button
+        text = 'Edit Source'
+        clicked ::
+            editor = SourceEditor(source_code=widget.source_code)
+            editor.show()
+            if editor.result == 'accepted':
+                widget.source_code = editor.source_code
+
+    CodedWidget:
+        id: widget
+
+
+enamldef SourceEditor(Dialog):
+    id: dialog
+
+    attr source_code: str = ''
+
+    initialized :: editor.set_text(source_code.decode('utf8'))
+
+    Container:
+
+        TextEditor:
+            id: editor
+
+        PushButton:
+            text = 'Save'
+            clicked ::
+                dialog.source_code = editor.get_text().encode('utf8')
+                dialog.accept()
 
 
 enamldef WebBrowser(Container):
     id: web_browser
-    constraints = [
-        vbox(
-            hbox(url_label, url_field),
-            web_view,
-        ),
-        web_view.width >= 640,
-        web_view.height >= 480,
-    ]
+
     attr url: basestring = ''
-    Label:
-        id: url_label
-        text = 'URL'
+
+    attr web_view = web_view
+
+    event load_finished
+
+    constraints = [
+        vbox(url_field, web_view),
+    ]
+    padding = (0, 0, 0, 0)
+
     Field:
         id: url_field
         value := web_browser.url
     WebView:
         id: web_view
         url := web_browser.url
+        load_finished :: web_browser.load_finished()
